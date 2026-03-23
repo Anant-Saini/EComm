@@ -1,5 +1,6 @@
 package org.arth.ecomm.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.arth.ecomm.model.Product;
 import org.arth.ecomm.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +16,11 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api")
 @CrossOrigin
+@RequiredArgsConstructor
 public class ProductController {
 
 
-    private ProductService prodService;
+    private final ProductService prodService;
 
     @GetMapping("/products")
     public ResponseEntity<List<Product>> getProducts() {
@@ -31,18 +33,45 @@ public class ProductController {
         return prod.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/product/{id}/image")
+    public ResponseEntity<byte[]> getImageById(@PathVariable Long id) {
+        Optional<Product> prod = prodService.getProductById(id);
+        return prod.map(product -> new ResponseEntity<>(product.getImageData(), HttpStatus.OK))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/product")
     public ResponseEntity<?> addProduct(@RequestPart Product product, @RequestPart MultipartFile imageFile) {
         try {
-            Product savedProd = prodService.addProduct(product, imageFile);
+            Product savedProd = prodService.addOrUpdateProduct(product, imageFile);
             return new ResponseEntity<>(savedProd, HttpStatus.CREATED);
         } catch (IOException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @Autowired
-    public void setProdService(ProductService prodService) {
-        this.prodService = prodService;
+    @PutMapping("/product/{id}")
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestPart Product product, @RequestPart MultipartFile imageFile) {
+        try {
+            Product updatedProd = prodService.addOrUpdateProduct(product, imageFile);
+            return new ResponseEntity<>(updatedProd, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
+
+    @DeleteMapping("/product/{id}")
+    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
+        if(!prodService.isProductExist(id)) return ResponseEntity.notFound().build();
+        prodService.deleteProduct(id);
+        return ResponseEntity.ok("Successfully deleted!");
+
+    }
+
+    @GetMapping("/products/search")
+    public ResponseEntity<List<Product>> getSearchedProducts(@RequestParam("name") String keyword) {
+        if(keyword == null || keyword.isEmpty()) return ResponseEntity.ok(List.of());
+        return ResponseEntity.ok(prodService.getSearchedProducts(keyword));
+    }
+
 }

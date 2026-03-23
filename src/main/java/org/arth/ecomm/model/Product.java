@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -23,11 +25,10 @@ public class Product {
     private String brand;
     private BigDecimal price;
     private String category;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date releaseDate;
     private String imageName;
     private String imageType;
-    @Lob
+    @JdbcTypeCode(SqlTypes.BINARY)
     private byte[] imageData;
     private boolean productAvailable;
     private int stockQuantity;
