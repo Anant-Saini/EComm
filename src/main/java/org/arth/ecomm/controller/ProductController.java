@@ -51,7 +51,8 @@ public class ProductController {
     }
 
     @PutMapping("/product/{id}")
-    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestPart Product product, @RequestPart MultipartFile imageFile) {
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestPart("product") Product product,
+                                           @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
         try {
             Product updatedProd = prodService.addOrUpdateProduct(product, imageFile);
             return new ResponseEntity<>(updatedProd, HttpStatus.OK);
