@@ -31,6 +31,8 @@ public class Product {
     private byte[] imageData;
     private boolean productAvailable;
     private int stockQuantity;
+    @Version
+    private Integer version;
 
     @Override
     public boolean equals(Object o) {
